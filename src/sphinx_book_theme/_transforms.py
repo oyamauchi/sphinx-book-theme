@@ -79,6 +79,12 @@ class HandleFootnoteTransform(SphinxPostTransform):
                             break
                         node_parent = node_parent.parent
 
+                        # Skip the list_item node and its parent, which is one of
+                        # several *_list types. Pulling the sidenote up does not need
+                        # to happen if it's within a list.
+                        if isinstance(node_parent, docutil_nodes.list_item):
+                            node_parent = node_parent.parent.parent
+
                     ref_node.replace_self([sidenote, para_dup])
                     break
             if parent:
