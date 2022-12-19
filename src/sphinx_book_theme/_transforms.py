@@ -64,7 +64,7 @@ class HandleFootnoteTransform(SphinxPostTransform):
                     # so it works w/ margin. Only show one or another depending on
                     # screen width.
                     node_parent = ref_node.parent
-                    para_dup = para.deepcopy()
+                    moved = False
                     # looping to check parent node
                     while not isinstance(
                         node_parent, (docutil_nodes.section, sphinx_nodes.document)
@@ -72,14 +72,29 @@ class HandleFootnoteTransform(SphinxPostTransform):
                         # if parent node is another container
                         if not isinstance(
                             node_parent,
-                            (docutil_nodes.paragraph, docutil_nodes.footnote),
+                            (
+                                docutil_nodes.paragraph,
+                                docutil_nodes.footnote,
+                                docutil_nodes.list_item,
+                            ),
                         ):
                             node_parent.replace_self([para, node_parent])
-                            para_dup.attributes["classes"].append("d-n")
+                            moved = True
                             break
-                        node_parent = node_parent.parent
 
-                    ref_node.replace_self([sidenote, para_dup])
+                        if isinstance(node_parent, docutil_nodes.list_item):
+                            # The parent of a list_item can be any of several *_list
+                            # types. Rather than enumerate all those in the instance
+                            # check above, just skip past it.
+                            node_parent = node_parent.parent.parent
+                        else:
+                            node_parent = node_parent.parent
+
+                    if moved:
+                        ref_node.replace_self(sidenote)
+                    else:
+                        ref_node.replace_self([sidenote, para])
+
                     break
             if parent:
                 parent.remove(foot_node)
