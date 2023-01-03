@@ -3,7 +3,6 @@ from typing import Any
 from docutils import nodes as docutil_nodes
 from sphinx import addnodes as sphinx_nodes
 from .nodes import SideNoteNode
-import copy
 
 
 class HandleFootnoteTransform(SphinxPostTransform):
@@ -64,7 +63,7 @@ class HandleFootnoteTransform(SphinxPostTransform):
                     # so it works w/ margin. Only show one or another depending on
                     # screen width.
                     node_parent = ref_node.parent
-                    para_dup = copy.deepcopy(para)
+                    moved = False
                     # looping to check parent node
                     while not isinstance(
                         node_parent, (docutil_nodes.section, sphinx_nodes.document)
@@ -75,7 +74,7 @@ class HandleFootnoteTransform(SphinxPostTransform):
                             (docutil_nodes.paragraph, docutil_nodes.footnote),
                         ):
                             node_parent.replace_self([para, node_parent])
-                            para_dup.attributes["classes"].append("d-n")
+                            moved = True
                             break
                         node_parent = node_parent.parent
 
@@ -85,7 +84,11 @@ class HandleFootnoteTransform(SphinxPostTransform):
                         if isinstance(node_parent, docutil_nodes.list_item):
                             node_parent = node_parent.parent.parent
 
-                    ref_node.replace_self([sidenote, para_dup])
+                    if moved:
+                        ref_node.replace_self(sidenote)
+                    else:
+                        ref_node.replace_self([sidenote, para])
+
                     break
             if parent:
                 parent.remove(foot_node)
