@@ -71,18 +71,23 @@ class HandleFootnoteTransform(SphinxPostTransform):
                         # if parent node is another container
                         if not isinstance(
                             node_parent,
-                            (docutil_nodes.paragraph, docutil_nodes.footnote),
+                            (
+                                docutil_nodes.paragraph,
+                                docutil_nodes.footnote,
+                                docutil_nodes.list_item,
+                            ),
                         ):
                             node_parent.replace_self([para, node_parent])
                             moved = True
                             break
-                        node_parent = node_parent.parent
 
-                        # Skip the list_item node and its parent, which is one of
-                        # several *_list types. Pulling the sidenote up does not need
-                        # to happen if it's within a list.
                         if isinstance(node_parent, docutil_nodes.list_item):
+                            # The parent of a list_item can be any of several *_list
+                            # types. Rather than enumerate all those in the instance
+                            # check above, just skip past it.
                             node_parent = node_parent.parent.parent
+                        else:
+                            node_parent = node_parent.parent
 
                     if moved:
                         ref_node.replace_self(sidenote)
