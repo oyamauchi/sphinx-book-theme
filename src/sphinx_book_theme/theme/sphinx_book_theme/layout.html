@@ -1,6 +1,16 @@
 {% extends "pydata_sphinx_theme/layout.html" %}
 {# ref: https://github.com/pydata/pydata-sphinx-theme/blob/master/src/pydata_sphinx_theme/theme/pydata_sphinx_theme/layout.html #}
 
+{% block css %}
+{% if theme_preload_fonts %}
+{% for preload in theme_preload_fonts %}
+    <link rel="preload" as="font" href="{{ preload }}" />
+{% endfor %}
+{% endif %}
+
+{{ super() }}
+{% endblock %}
+
 {% block docs_main %}
 {# A tiny helper pixel to detect if we've scrolled #}
 <div class="sbt-scroll-pixel-helper"></div>
